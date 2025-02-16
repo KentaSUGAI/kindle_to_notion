@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Notion にコピーする",
+  "version": "1.0",
+  "permissions": ["contextMenus", "scripting", "activeTab", "storage"],
+  "host_permissions": [
+    "https://api.notion.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://read.amazon.co.jp/notebook*"],
+      "js": ["content.js"]
+    }
+  ]
+}
