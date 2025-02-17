@@ -12,6 +12,9 @@
   "action": {
     "default_popup": "popup.html"
   },
+  "icons": {
+    "128": "128.png"
+  },
   "content_scripts": [
     {
       "matches": ["https://read.amazon.co.jp/notebook*"],
