@@ -18,6 +18,11 @@ function addNotionButtons() {
 
     const highlightText = highlightElement.innerText.trim();
 
+    // メモの取得 (存在する場合)
+    const noteElement = container.querySelector('.kp-notebook-note span#note');
+    const existingNote = noteElement ? noteElement.innerText.trim() : "";
+
+
     const button = document.createElement('button');
     button.textContent = 'Notion にコピー';
     button.classList.add('notion-copy-button');
@@ -44,13 +49,16 @@ function addNotionButtons() {
         author: "Author"
       };
 
+      // ユーザーにコメント入力を促す（既存メモがあれば初期値として設定）
+      const comment = prompt("コメントを入力してください (任意):", existingNote) || "";
+
       const createdAt = new Date().toISOString();
       const notionData = {
         // parent は background.js で設定
         properties: {
           [dbMapping.highlight]: { title: [{ text: { content: highlightText } }] },
           [dbMapping.createdAt]: { date: { start: createdAt } },
-          [dbMapping.comment]: { rich_text: [{ text: { content: "" } }] },
+          [dbMapping.comment]: { rich_text: [{ text: { content: comment } }] },
           [dbMapping.bookTitle]: { select: { name: bookTitle } },
           [dbMapping.author]: { select: { name: author } }
         }
