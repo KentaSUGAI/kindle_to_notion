@@ -2,17 +2,154 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Notion 接続テスト</title>
+  <title>Notion 設定</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 10px; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 16px;
+      width: 320px;
+      color: #37352f;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 18px;
+      color: #37352f;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    input {
+      padding: 8px 12px;
+      border: 1px solid #e4e4e4;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #2383e2;
+    }
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #saveButton {
+      background-color: #2383e2;
+      color: white;
+    }
+    #saveButton:hover {
+      background-color: #1a6bba;
+    }
+    #testConnection {
+      background-color: #f7f6f3;
+      color: #37352f;
+      border: 1px solid #e4e4e4;
+    }
+    #testConnection:hover {
+      background-color: #eae9e5;
+    }
+    .message {
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 14px;
+      margin-top: 16px;
+      display: none;
+    }
+    .success {
+      background-color: #e9f7ef;
+      color: #27ae60;
+      border: 1px solid #d1f2e0;
+    }
+    .error {
+      background-color: #fdf3f2;
+      color: #e74c3c;
+      border: 1px solid #fadbd8;
+    }
+    .show {
+      display: block;
+    }
+    .saved-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #27ae60;
+      font-size: 12px;
+      margin-left: 8px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .saved-indicator.show {
+      opacity: 1;
+    }
+    .toggle-password {
+      position: relative;
+    }
+    .eye-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+      opacity: 0.5;
+    }
+    .eye-icon:hover {
+      opacity: 0.8;
+    }
   </style>
 </head>
 <body>
-  <h2>Notion 接続テスト</h2>
-  <input type="text" id="notionApiKey" placeholder="Notion API キー" style="width:100%;" /><br><br>
-  <input type="text" id="databaseId" placeholder="Database ID" style="width:100%;" /><br><br>
-  <button id="testConnection">接続テスト</button>
-  <p id="result"></p>
+  <div class="container">
+    <h2>Notion 設定</h2>
+    
+    <div class="form-group">
+      <label for="notionApiKey">Notion API キー <span class="saved-indicator" id="apiKeySaved">✓ 保存済み</span></label>
+      <div class="toggle-password">
+        <input type="password" id="notionApiKey" placeholder="secret_xxxxxxxxxxxxxxxxxxxx" />
+        <svg class="eye-icon" id="toggleApiKey" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="databaseId">Database ID <span class="saved-indicator" id="dbIdSaved">✓ 保存済み</span></label>
+      <input type="text" id="databaseId" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+    </div>
+    
+    <div class="button-group">
+      <button id="saveButton">保存</button>
+      <button id="testConnection">接続テスト</button>
+    </div>
+    
+    <div class="message" id="result"></div>
+  </div>
+  
   <script src="popup.js"></script>
 </body>
 </html>
