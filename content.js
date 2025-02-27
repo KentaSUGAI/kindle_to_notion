@@ -248,8 +248,18 @@ function addNotionButtons() {
       };
 
       // ユーザーにコメント入力を促す（既存メモがあれば初期値として設定）
-      const comment = prompt("コメントを入力してください (任意):", existingNote) || "";
-
+      // Cancel を押すと Notion に送信しない
+      const userComment = prompt("コメントを入力してください (任意)\n「キャンセル」を押すと Notion に送信しません", existingNote);
+      
+      // キャンセルが押された場合は処理を中止
+      if (userComment === null) {
+        button.textContent = 'Notion にコピー';
+        button.disabled = false;
+        button.style.backgroundColor = "#4CAF50";
+        return;
+      }
+      
+      const comment = userComment || "";
       const createdAt = new Date().toISOString();
       const notionData = {
         // parent は background.js で設定
