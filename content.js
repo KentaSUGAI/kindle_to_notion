@@ -1,6 +1,8 @@
 // --- content.js ---
 
-// トースト通知のスタイルを注入
+/**
+ * トースト通知のスタイルをページに注入する
+ */
 function injectStyles() {
   const style = document.createElement('style');
   style.textContent = `
@@ -101,12 +103,17 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-// トースト通知クラス
+/**
+ * トースト通知を管理するクラス
+ */
 class NotionToast {
   constructor() {
     this.createContainer();
   }
 
+  /**
+   * トースト通知を表示するためのコンテナを作成する
+   */
   createContainer() {
     // 既存のコンテナがあれば削除
     const existingContainer = document.querySelector('.notion-toast-container');
@@ -120,6 +127,15 @@ class NotionToast {
     document.body.appendChild(this.container);
   }
 
+  /**
+   * トースト通知を表示する
+   * @param {Object} options - トースト通知のオプション
+   * @param {string} options.title - トーストのタイトル
+   * @param {string} options.message - トーストのメッセージ
+   * @param {string} options.type - トーストの種類 ('success' | 'error')
+   * @param {number} options.duration - 表示時間（ミリ秒）
+   * @returns {HTMLElement} 作成されたトースト要素
+   */
   show(options = {}) {
     const { title, message, type = 'success', duration = 3000 } = options;
     
@@ -197,16 +213,24 @@ class NotionToast {
 // スタイルを注入
 injectStyles();
 
+/**
+ * Kindleのハイライトに対してNotionへのコピーボタンを追加する
+ */
 function addNotionButtons() {
-  const highlightContainers = document.querySelectorAll('div.a-row.a-spacing-base');
-  const bookTitleElement = document.querySelector("div.a-column.a-span5 h3.a-spacing-top-small.a-color-base.kp-notebook-selectable.kp-notebook-metadata");
-  const bookTitle = bookTitleElement ? bookTitleElement.innerText.trim() : "";
-  const authorElement = document.querySelector("div.a-column.a-span5 p.a-spacing-none.a-spacing-top-micro.a-size-base.a-color-secondary.kp-notebook-selectable.kp-notebook-metadata");
-  const author = authorElement ? authorElement.innerText.trim() : "";
+  const highlight_containers = document.querySelectorAll('div.a-row.a-spacing-base');
+  const book_title_element = document.querySelector(
+    "div.a-column.a-span5 h3.a-spacing-top-small.a-color-base.kp-notebook-selectable.kp-notebook-metadata"
+  );
+  const book_title = book_title_element ? book_title_element.innerText.trim() : "";
+  const author_element = document.querySelector(
+    "div.a-column.a-span5 p.a-spacing-none.a-spacing-top-micro.a-size-base" + 
+    ".a-color-secondary.kp-notebook-selectable.kp-notebook-metadata"
+  );
+  const author = author_element ? author_element.innerText.trim() : "";
 
-  highlightContainers.forEach(container => {
-    const highlightElement = container.querySelector('span#highlight');
-    if (!highlightElement) {
+  highlight_containers.forEach(container => {
+    const highlight_element = container.querySelector('span#highlight');
+    if (!highlight_element) {
       return;
     }
 
@@ -214,32 +238,31 @@ function addNotionButtons() {
       return;
     }
 
-    const highlightText = highlightElement.innerText.trim();
+    const highlight_text = highlight_element.innerText.trim();
 
     // メモの取得 (存在する場合)
-    const noteElement = container.querySelector('.kp-notebook-note span#note');
-    const existingNote = noteElement ? noteElement.innerText.trim() : "";
-
+    const note_element = container.querySelector('.kp-notebook-note span#note');
+    const existing_note = note_element ? note_element.innerText.trim() : "";
 
     const button = document.createElement('button');
     button.textContent = 'Notion にコピー';
     button.classList.add('notion-copy-button');
     button.style.cssText = `
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 5px 10px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            margin-left: 10px;
-            cursor: pointer;
-            border-radius: 4px;
-        `;
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      margin-left: 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    `;
 
     button.addEventListener('click', () => {
-      const dbMapping = {
+      const db_mapping = {
         highlight: "Highlight",
         createdAt: "Created At",
         comment: "Comment",
@@ -249,37 +272,40 @@ function addNotionButtons() {
 
       // ユーザーにコメント入力を促す（既存メモがあれば初期値として設定）
       // Cancel を押すと Notion に送信しない
-      const userComment = prompt("コメントを入力してください (任意)\n「キャンセル」を押すと Notion に送信しません", existingNote);
+      const user_comment = prompt(
+        "コメントを入力してください (任意)\n「キャンセル」を押すと Notion に送信しません",
+        existing_note
+      );
       
       // キャンセルが押された場合は処理を中止
-      if (userComment === null) {
+      if (user_comment === null) {
         button.textContent = 'Notion にコピー';
         button.disabled = false;
         button.style.backgroundColor = "#4CAF50";
         return;
       }
       
-      const comment = userComment || "";
-      const createdAt = new Date().toISOString();
-      const notionData = {
+      const comment = user_comment || "";
+      const created_at = new Date().toISOString();
+      const notion_data = {
         // parent は background.js で設定
         properties: {
-          [dbMapping.highlight]: { title: [{ text: { content: highlightText } }] },
-          [dbMapping.createdAt]: { date: { start: createdAt } },
-          [dbMapping.comment]: { rich_text: [{ text: { content: comment } }] },
-          [dbMapping.bookTitle]: { select: { name: bookTitle } },
-          [dbMapping.author]: { select: { name: author } }
+          [db_mapping.highlight]: { title: [{ text: { content: highlight_text } }] },
+          [db_mapping.createdAt]: { date: { start: created_at } },
+          [db_mapping.comment]: { rich_text: [{ text: { content: comment } }] },
+          [db_mapping.bookTitle]: { select: { name: book_title } },
+          [db_mapping.author]: { select: { name: author } }
         }
       };
 
-      console.log("[content.js] Prepared notionData for DB:", notionData);
+      console.log("[content.js] Prepared notionData for DB:", notion_data);
 
       // 送信中の状態表示
       button.textContent = '送信中...';
       button.disabled = true;
       button.style.backgroundColor = "#a0a0a0";
 
-      chrome.runtime.sendMessage({ action: "postToNotion", notionData: notionData }, (response) => {
+      chrome.runtime.sendMessage({ action: "postToNotion", notionData: notion_data }, (response) => {
         if (response && response.success) {
           button.textContent = 'コピー済';
           button.disabled = true;
@@ -289,7 +315,9 @@ function addNotionButtons() {
           const toast = new NotionToast();
           toast.show({
             title: 'Notionに保存しました',
-            message: bookTitle ? `『${bookTitle}』からの引用をNotionに保存しました` : '引用をNotionに保存しました',
+            message: book_title ? 
+              `『${book_title}』からの引用をNotionに保存しました` : 
+              '引用をNotionに保存しました',
             type: 'success',
             duration: 3000
           });
@@ -313,10 +341,10 @@ function addNotionButtons() {
       });
     });
 
-    //highlightの存在するコンテナに追加するように変更。
-    const highlightContainer = highlightElement.closest('.a-row.a-spacing-base');
-    if (highlightContainer) {
-      highlightContainer.appendChild(button);
+    // highlightの存在するコンテナに追加するように変更。
+    const highlight_container = highlight_element.closest('.a-row.a-spacing-base');
+    if (highlight_container) {
+      highlight_container.appendChild(button);
     }
   });
 }
