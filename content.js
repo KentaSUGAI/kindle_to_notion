@@ -214,6 +214,197 @@ class NotionToast {
 injectStyles();
 
 /**
+ * タグ選択用のモーダルを作成する
+ * @param {string[]} tags - 利用可能なタグのリスト
+ * @param {Function} onConfirm - 確認時のコールバック関数
+ * @returns {HTMLElement} モーダル要素
+ */
+function createTagModal(tags, onConfirm) {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    max-width: 500px;
+    width: 90%;
+  `;
+
+  const title = document.createElement('h3');
+  title.textContent = 'タグを選択';
+  title.style.marginTop = '0';
+
+  // 新規タグ作成フォーム
+  const newTagForm = document.createElement('div');
+  newTagForm.style.cssText = `
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  `;
+
+  const newTagInput = document.createElement('input');
+  newTagInput.type = 'text';
+  newTagInput.placeholder = '新しいタグを入力';
+  newTagInput.style.cssText = `
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+  `;
+
+  const addTagButton = document.createElement('button');
+  addTagButton.textContent = '追加';
+  addTagButton.style.cssText = `
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #2383e2;
+    color: white;
+    cursor: pointer;
+  `;
+
+  const tagContainer = document.createElement('div');
+  tagContainer.style.cssText = `
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 4px;
+  `;
+
+  const selectedTags = new Set();
+  const allTags = new Set(tags);
+
+  function createTagButton(tag) {
+    const tagButton = document.createElement('button');
+    tagButton.textContent = tag;
+    tagButton.style.cssText = `
+      padding: 4px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    `;
+
+    if (selectedTags.has(tag)) {
+      tagButton.style.background = '#2383e2';
+      tagButton.style.color = 'white';
+    }
+
+    tagButton.addEventListener('click', () => {
+      if (selectedTags.has(tag)) {
+        selectedTags.delete(tag);
+        tagButton.style.background = 'white';
+        tagButton.style.color = 'black';
+      } else {
+        selectedTags.add(tag);
+        tagButton.style.background = '#2383e2';
+        tagButton.style.color = 'white';
+      }
+    });
+
+    return tagButton;
+  }
+
+  function refreshTagButtons() {
+    tagContainer.innerHTML = '';
+    Array.from(allTags).sort().forEach(tag => {
+      tagContainer.appendChild(createTagButton(tag));
+    });
+  }
+
+  addTagButton.addEventListener('click', () => {
+    const newTag = newTagInput.value.trim();
+    if (newTag && !allTags.has(newTag)) {
+      allTags.add(newTag);
+      selectedTags.add(newTag);
+      newTagInput.value = '';
+      refreshTagButtons();
+
+      // 新しいタグをストレージに保存
+      chrome.storage.sync.get(['tagOptions'], (items) => {
+        const tag_options = new Set(items.tagOptions || []);
+        tag_options.add(newTag);
+        chrome.storage.sync.set({ tagOptions: Array.from(tag_options) }, () => {
+          console.log("新しいタグが保存されました:", newTag);
+        });
+      });
+    }
+  });
+
+  // Enterキーでも新規タグを追加できるように
+  newTagInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addTagButton.click();
+    }
+  });
+
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.cssText = `
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+  `;
+
+  const cancelButton = document.createElement('button');
+  cancelButton.textContent = 'キャンセル';
+  cancelButton.style.cssText = `
+    padding: 8px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+  `;
+
+  const confirmButton = document.createElement('button');
+  confirmButton.textContent = '確認';
+  confirmButton.style.cssText = `
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #2383e2;
+    color: white;
+    cursor: pointer;
+  `;
+
+  cancelButton.addEventListener('click', () => {
+    modal.remove();
+    onConfirm(null);
+  });
+
+  confirmButton.addEventListener('click', () => {
+    modal.remove();
+    onConfirm(Array.from(selectedTags));
+  });
+
+  newTagForm.appendChild(newTagInput);
+  newTagForm.appendChild(addTagButton);
+
+  buttonContainer.appendChild(cancelButton);
+  buttonContainer.appendChild(confirmButton);
+
+  modal.appendChild(title);
+  modal.appendChild(newTagForm);
+  modal.appendChild(tagContainer);
+  modal.appendChild(buttonContainer);
+
+  refreshTagButtons();
+
+  return modal;
+}
+
+/**
  * Kindleのハイライトに対してNotionへのコピーボタンを追加する
  */
 function addNotionButtons() {
@@ -267,11 +458,11 @@ function addNotionButtons() {
         createdAt: "Created At",
         comment: "Comment",
         bookTitle: "Book Title",
-        author: "Author"
+        author: "Author",
+        tags: "Tags"
       };
 
       // ユーザーにコメント入力を促す（既存メモがあれば初期値として設定）
-      // Cancel を押すと Notion に送信しない
       const user_comment = prompt(
         "コメントを入力してください (任意)\n「キャンセル」を押すと Notion に送信しません",
         existing_note
@@ -279,65 +470,77 @@ function addNotionButtons() {
       
       // キャンセルが押された場合は処理を中止
       if (user_comment === null) {
-        button.textContent = 'Notion にコピー';
-        button.disabled = false;
-        button.style.backgroundColor = "#4CAF50";
         return;
       }
-      
-      const comment = user_comment || "";
-      const created_at = new Date().toISOString();
-      const notion_data = {
-        // parent は background.js で設定
-        properties: {
-          [db_mapping.highlight]: { title: [{ text: { content: highlight_text } }] },
-          [db_mapping.createdAt]: { date: { start: created_at } },
-          [db_mapping.comment]: { rich_text: [{ text: { content: comment } }] },
-          [db_mapping.bookTitle]: { select: { name: book_title } },
-          [db_mapping.author]: { select: { name: author } }
-        }
-      };
 
-      console.log("[content.js] Prepared notionData for DB:", notion_data);
+      // 保存されているタグオプションを取得
+      chrome.storage.sync.get(['tagOptions'], (items) => {
+        const tag_options = items.tagOptions || [];
+        
+        // タグ選択モーダルを表示
+        const modal = createTagModal(tag_options, (selected_tags) => {
+          if (selected_tags === null) {
+            // タグ選択がキャンセルされた場合
+            return;
+          }
 
-      // 送信中の状態表示
-      button.textContent = '送信中...';
-      button.disabled = true;
-      button.style.backgroundColor = "#a0a0a0";
+          const comment = user_comment || "";
+          const created_at = new Date().toISOString();
+          const notion_data = {
+            properties: {
+              [db_mapping.highlight]: { title: [{ text: { content: highlight_text } }] },
+              [db_mapping.createdAt]: { date: { start: created_at } },
+              [db_mapping.comment]: { rich_text: [{ text: { content: comment } }] },
+              [db_mapping.bookTitle]: { select: { name: book_title } },
+              [db_mapping.author]: { select: { name: author } },
+              [db_mapping.tags]: { multi_select: selected_tags.map(tag => ({ name: tag })) }
+            }
+          };
 
-      chrome.runtime.sendMessage({ action: "postToNotion", notionData: notion_data }, (response) => {
-        if (response && response.success) {
-          button.textContent = 'コピー済';
+          console.log("[content.js] Prepared notionData for DB:", notion_data);
+
+          // 送信中の状態表示
+          button.textContent = '送信中...';
           button.disabled = true;
-          button.style.backgroundColor = "#888";
-          
-          // 成功通知を表示
-          const toast = new NotionToast();
-          toast.show({
-            title: 'Notionに保存しました',
-            message: book_title ? 
-              `『${book_title}』からの引用をNotionに保存しました` : 
-              '引用をNotionに保存しました',
-            type: 'success',
-            duration: 3000
+          button.style.backgroundColor = "#a0a0a0";
+
+          chrome.runtime.sendMessage({ action: "postToNotion", notionData: notion_data }, (response) => {
+            if (response && response.success) {
+              button.textContent = 'コピー済';
+              button.disabled = true;
+              button.style.backgroundColor = "#888";
+              
+              // 成功通知を表示
+              const toast = new NotionToast();
+              toast.show({
+                title: 'Notionに保存しました',
+                message: book_title ? 
+                  `『${book_title}』からの引用をNotionに保存しました` : 
+                  '引用をNotionに保存しました',
+                type: 'success',
+                duration: 3000
+              });
+            } else {
+              console.error("[content.js] Error posting to Notion:", response);
+              
+              // エラー時はボタンを元に戻す
+              button.textContent = 'Notion にコピー';
+              button.disabled = false;
+              button.style.backgroundColor = "#4CAF50";
+              
+              // エラー通知
+              const toast = new NotionToast();
+              toast.show({
+                title: 'エラーが発生しました',
+                message: response?.error || 'Notionへの書き込みに失敗しました',
+                type: 'error',
+                duration: 4000
+              });
+            }
           });
-        } else {
-          console.error("[content.js] Error posting to Notion:", response);
-          
-          // エラー時はボタンを元に戻す
-          button.textContent = 'Notion にコピー';
-          button.disabled = false;
-          button.style.backgroundColor = "#4CAF50";
-          
-          // エラー通知
-          const toast = new NotionToast();
-          toast.show({
-            title: 'エラーが発生しました',
-            message: response?.error || 'Notionへの書き込みに失敗しました',
-            type: 'error',
-            duration: 4000
-          });
-        }
+        });
+
+        document.body.appendChild(modal);
       });
     });
 

@@ -8,15 +8,39 @@
 
 ## Coding
 {
-  "naming_conventions": {
-    "functions": "camelCase",
-    "variables": "snake_case"
+  "javascript": {
+    "naming": {
+      "functions": "camelCase",
+      "variables": "snake_case"
+    },
+    "style": {
+      "max_line_length": 100,
+      "indentation": "spaces",
+      "indent_size": 2,
+      "quotes": "single",
+      "semicolons": true
+    },
+    "documentation": {
+      "require_function_docs": true,
+      "doc_style": "jsdoc"
+    }
   },
-  "docstrings": {
-    "require_for_all_functions": true
+  "html": {
+    "style": {
+      "max_line_length": 100,
+      "indentation": "spaces",
+      "indent_size": 2
+    }
   },
-  "code_style": {
-    "max_line_length": 100,
-    "indentation": "spaces"
+  "json": {
+    "style": {
+      "indentation": "spaces",
+      "indent_size": 2
+    }
+  },
+  "markdown": {
+    "style": {
+      "max_line_length": 100
+    }
   }
 }

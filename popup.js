@@ -130,6 +130,14 @@ function testConnection() {
       const properties = data.properties;
       const property_keys = Object.keys(properties);
       
+      // タグ情報の取得と保存
+      if (properties.Tags && properties.Tags.type === 'multi_select') {
+        const tag_options = properties.Tags.multi_select.options.map(option => option.name);
+        chrome.storage.sync.set({ tagOptions: tag_options }, () => {
+          console.log("タグオプションが保存されました:", tag_options);
+        });
+      }
+      
       // データベースの項目を表示
       let column_display = '<ul style="margin-top:5px;padding-left:20px">';
       property_keys.forEach((key) => {
