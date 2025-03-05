@@ -73,7 +73,3 @@ kindle_to_notion/
 ## ライセンス
 
 MIT License
-
-## 参考
-
-https://note.com/liguria/n/n15e98f14fb9a
